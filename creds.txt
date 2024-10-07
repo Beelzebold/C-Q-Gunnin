@@ -1,0 +1,4 @@
+font: 7x7 by neon280, fontstruct
+art: me, yychr and paintdotnet (nya :3c)
+sounds: me, pico8 (nyaa ;3)
+music: me, pico8 (mrrp ;333)

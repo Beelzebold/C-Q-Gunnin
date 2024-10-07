@@ -1,0 +1,12 @@
+//Shader to quantize all colors to a range of 0 - 4
+
+vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords) {
+    vec4 texturecolor = Texel(tex, texture_coords);
+    texturecolor = texturecolor * color;
+	texturecolor *= vec4(255,255,255,1);
+	int colors = 4; //the range of each channel. the NES palette should have a range of 0 - 3
+	//but as they aren't exactly equidistant a higher value could look better
+    texturecolor /= vec4(255/colors, 255/colors, 255/colors, 1.0);
+    texturecolor = vec4(ceil(texturecolor.r) * 255/colors, ceil(texturecolor.g) * 255/colors, ceil(texturecolor.b) * 255/colors, texturecolor.a);
+    return texturecolor/vec4(255,255,255,1);
+}
