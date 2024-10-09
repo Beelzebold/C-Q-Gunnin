@@ -1,3 +1,6 @@
+local Vector = require( "luafinding/vector" )
+local Luafinding = require("luafinding/luafinding")
+
 function love.keypressed(key,scancode,isrepeat)
 	if gamestate==STATE_GAME and currentteam==2 then
 		--aistate = AITurn()
@@ -44,7 +47,7 @@ function love.keypressed(key,scancode,isrepeat)
 					if helppage>#helptitles then helppage=#helptitles end
 					else
 					menuselect=menuselect+1
-					if menuselect>4 then menuselect=4 end
+					if menuselect>5 then menuselect=5 end
 					end
 				end
 			if key=="up" then
@@ -70,21 +73,24 @@ function love.keypressed(key,scancode,isrepeat)
 						end,
 					function()
 						exitgame()
+						end,
+					function()
+						menu=false
 						end
 				}
 				menufunctions[menuselect]()
 				end
-			if key=="x" then
+			if key=="x" or key=="escape" then
 				if (helpscreen) then
-					helpmenu=(not helpmenu)
+					helpmenu=false
 					fade=1
 					else
-					menu=(not menu)
+					menu=false
 					end
 				end
 			end
 		
-		if key=="return" and isrepeat==false then
+		if key=="return" or key=="escape" and isrepeat==false then
 			--open the menu
 			menu=(not menu)
 			end
@@ -100,29 +106,29 @@ function love.keypressed(key,scancode,isrepeat)
 			if menuselect<1 then menuselect=1 end
 			end
 		
-		if key=="z" then
+		if key=="z" or key=="enter" then
 			initLevel(menuselect)
 			end
-		if key=="x" then
+		if key=="x" or key=="escape" then
 			fade=1
 			exiting=true
 			end
 		end
 	if gamestate==STATE_CUSTOM then
-		if key=="z" then
+		if key=="z" or key=="enter" then
 			if #maps[-1]==(16*12) then
 				initLevel(-1)
 				else
 				sfx.nuhuh:stop();sfx.nuhuh:play()
 				end
 			end
-		if key=="x" then
+		if key=="x" or key=="escape" then
 			fade=1
 			exiting=true
 			end
 		end
 	if gamestate==STATE_POST then
-		if key=="z" or key=="x" or key=="return" then
+		if key=="z" or key=="x" or key=="escape" or key=="return" then
 			menuselect=1
 			fade=1
 			endlv=true
@@ -179,7 +185,7 @@ function love.keypressed(key,scancode,isrepeat)
 			}
 			menufunctions[menuselect]()
 			end
-		if key=="x" then
+		if key=="x" or key=="escape" then
 			saveConfig()
 			if gamestate==STATE_OPTS then
 				gamestate=STATE_TITLE
@@ -284,20 +290,45 @@ function zpress(px,py)
 			else
 			o=objs[selectedpiece]
 			--clicked on a tile
+			local cursordist = math.abs(o.pox-px)+math.abs(o.poy-py)
+			local moverange = math.floor(20/o.movecost)
 			print("tile clicked is id"..level[(px+1)+py*16])
 			if level[(px+1)+py*16]>2 then
 				--clicked on a wall/water
-				if math.abs(o.pox-px)+math.abs(o.poy-py)>1 then
+				if cursordist>1 then
 					selectedpiece=0
 					else
 					sfx.nuhuh:play()
 					end
 				print("invalid move (clicked on a wall)")
 				else
-				if math.abs(o.pox-px)+math.abs(o.poy-py)>1 then
+				if cursordist>1 then
 					--tile is not adjacent
-					selectedpiece=0
-					print("invalid move (clicked on a faraway tile)")
+					if cursordist>moverange then
+						selectedpiece=0
+						print("invalid move (clicked on a faraway tile)")
+						else
+						ignoredpiece1 = selectedpiece
+						generatePathMap()
+						local path = Luafinding( Vector(o.pox+1,o.poy+1), Vector(px+1,py+1), pathmap):GetPath()
+						
+						if path==nil then
+							selectedpiece=0
+							print("invalid move (no path)")
+							else
+							if #path-1>moverange then
+								selectedpiece=0
+								print("invalid move (path too far)")
+								else
+								--still have a valid path to the tile, so we'll snap there and deduct the necessary amount of AP
+								sfx.footsteps:stop()
+								sfx.footsteps:play()
+								o.pox=px
+								o.poy=py
+								o.actpts=o.actpts-(o.movecost*(#path-1))
+								end
+							end
+						end
 					else
 					if o.actpts>o.movecost-1 then
 						--move
@@ -319,4 +350,52 @@ function zpress(px,py)
 	if t[2]==0 then
 		gameover(1)
 		end
+	end
+
+function love.mousepressed(x,y,button,istouch)
+	clickpos2scalar(x,y)
+	if button==1 or istouch==true then click(mousex,mousey);return end
+	end
+function click(cx,cy)
+	local px;local py
+	if cx<0 or cx>1 then
+		return
+		end
+	if gamestate==STATE_GAME and cy<192/224 and (not menu) then
+		if cx<22/300 or cx>278/300 then
+			return
+			end
+		px=math.ceil((cx-(22/300))*18.75-1)
+		py=math.ceil((cy-(16/224))*14)
+		zpress(px,py)
+		end
+	if gamestate==STATE_GAME and cx>60/300 and cx<136/300 and cy>36/224 and cy<116/224 and (menu) then
+		local sel = math.ceil((cy-36/224)*224/16)
+		menuselect = sel
+		love.keypressed("z",nil,false)
+		end
+	if gamestate==STATE_MAPSEL and cy>92/224 and cy<132/224 then
+		if cx>266/300 then
+			love.keypressed("right",nil,false)
+			else
+			if cx<50/300 then
+				love.keypressed("left",nil,false)
+				end
+			end
+		end
+	if (gamestate==STATE_MAPSEL or gamestate==STATE_CUSTOM) and cx>46/300 and cx<254/300 then
+		love.keypressed("z",nil,false)
+		end
+	if gamestate==STATE_TITLE and cx>36/300 and cx<116/300 and cy>36/224 and cy<116/224 then
+		local sel = math.ceil((cy-36/224)*224/16)
+		menuselect = sel
+		love.keypressed("z",nil,false)
+		end
+	end
+function clickpos2scalar(cx,cy)
+	print("xofs "..xofs)
+	mousex = (cx-xofs)/((love.graphics.getHeight()/224)*300)
+	mousey = cy/love.graphics.getHeight()
+	print("clickpos "..mousex..", "..mousey.."("..cx..", "..cy..")")
+	print("texel: "..mousex*300 ..", "..mousey*224)
 	end

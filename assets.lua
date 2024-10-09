@@ -32,6 +32,9 @@ graphics = {
 	gun42 = love.graphics.newImage("graphics/gun42.png"),
 	gun52 = love.graphics.newImage("graphics/gun52.png"),
 	gun62 = love.graphics.newImage("graphics/gun62.png"),
+	
+	arrowr = love.graphics.newImage("graphics/arrowr.png"),
+	arrowl = love.graphics.newImage("graphics/arrowl.png"),
 }
 sfx = {
 	nuhuh = love.audio.newSource("sfx/incorrectbuzzer.wav","static"),

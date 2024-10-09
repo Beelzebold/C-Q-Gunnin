@@ -8,7 +8,7 @@ helppages[1]="hello! welcome to\nC-Q-GUNNIN'!\nthis menu will tell you\nall abou
 
 helptitles[2]="BASIC CONTROLS"
 
-helppages[2]="press A to select\na piece. move the cursor\nto an ADJACENT tile and\npress A again to move the\npiece there.\n \nif the piece is within\nrange of an enemy (see\natkrange in the stat bar!)\nmove the cursor to it and\npress A to attack it!\n \nselecting an invalid move,\nor pressing B, will\ndeselect the  current\npiece."
+helppages[2]="press A to select\na piece. move the cursor\nto a nearby tile and\npress A again to move the\npiece there.\n \nif the piece is within\nrange of an enemy (see\natkrange in the stat bar!)\nmove the cursor to it and\npress A to attack it!\n \nselecting an invalid move,\nor pressing B, will\ndeselect the  current\npiece."
 
 helptitles[3]="ACTION POINTS"
 

@@ -14,6 +14,9 @@ STATE_GAMEOPT = 6
 
 cursorx = 5
 cursory = 5
+--floats of 0..1, representing the position of the mouse cursor *on the canvas*
+mousex = 0
+mousey = 0
 
 framecounter = 0
 realframecounter = 0
@@ -39,6 +42,7 @@ endlv = false
 custommenu = false
 
 skillnames = {"easy","medium","normal"}
+controlnames = {"mouse","touch"}
 
 --debug
 drawpathmap = false
@@ -78,12 +82,15 @@ function love.load()
 	
 	if configdat then
 		config = json.decode(configdat)
+		if config.mousecontrol==nil then
+			config.mousecontrol = true
+			end
 		if config.version~=configversion then
-			config = {sfx = 5,mus = 5,ai_skill = 3,ai_speed = 1,showrange = false,version = configversion}
+			config = {sfx = 5,mus = 5,ai_skill = 3,ai_speed = 1,showrange = false,control = 1,version = configversion}
 			love.filesystem.write("cqgcfg.json",json.encode(config))
 			end
 		else
-		config = {sfx = 5,mus = 5,ai_skill = 3,ai_speed = 1,showrange = false,version = configversion}
+		config = {sfx = 5,mus = 5,ai_skill = 3,ai_speed = 1,showrange = false,control = 1,version = configversion}
 		love.filesystem.write("cqgcfg.json",json.encode(config))
 		end
 	
@@ -166,6 +173,7 @@ function love.update(dt)
 		local t=countTeamPieces()
 		if (t[1]==0 or t[2]==0) and gamestate==STATE_GAME then
 			if currentteam==2 or mapstats[levelnum].nextmap<1 then
+				score[currentteam]=score[currentteam]+60
 				gamestate=STATE_POST
 				else
 				nextLevel(mapstats[levelnum].nextmap)
@@ -286,6 +294,7 @@ function nikodraw()
 				monoprint(seletext[i],8*5,8*3+16*i)
 				end
 			end
+		monoprintlines("use the ARROW KEYS to\nnavigate this menu!",8*5,8*14)
 		end
 	
 	if gamestate==STATE_MAPSEL then
@@ -303,6 +312,14 @@ function nikodraw()
 		love.graphics.setColor(1,1,1,1)
 		love.graphics.rectangle("line",26+8*2,4+8*2,216,168)
 		love.graphics.line(26+8*2+1,4+8*4,216+26+8*2-1,4+8*4)
+		
+		--arrows
+		if menuselect<maxmap then
+			love.graphics.draw(graphics.arrowr,(framecounter%64<32) and 270 or 271,96)
+			end
+		if menuselect>1 then
+			love.graphics.draw(graphics.arrowl,(framecounter%64<32) and 14 or 13,96)
+			end
 		
 		--the text
 		monoprint(mapstats[menuselect].name,46,8*3)
@@ -431,27 +448,53 @@ function nikodraw()
 				end
 			end
 		for i=1,#objs do
-			--draw attack range
+			--draw move range
 			if i==selectedpiece or (objs[i].pox==cursorx and objs[i].poy==cursory) then
 				local teamcol = {{0.1764705882352941,0.5490196078431373,0.1607843137254902,1},{0.1607843137254902,0.4509803921568627,0.6117647058823529,1}}
 				love.graphics.setColor(teamcol[objs[i].team])
 				love.graphics.setLineWidth(1)
-				for n=1,objs[i].range do
+				local moverange = math.floor(objs[i].actpts/objs[i].movecost)+1
+				for n=1,moverange do
 					--left
-					love.graphics.line((objs[i].pox-(objs[i].range-n))*16+22+1,(objs[i].poy+(n-1))*16,(objs[i].pox-(objs[i].range-n))*16+22+1,(objs[i].poy+n)*16)
-					love.graphics.line((objs[i].pox-(objs[i].range-n))*16+22+1,(objs[i].poy+n)*16,(objs[i].pox+1-(objs[i].range-n))*16+22,(objs[i].poy+n)*16)
+					love.graphics.line((objs[i].pox-(moverange-n))*16+22+1,(objs[i].poy+(n-1))*16,(objs[i].pox-(moverange-n))*16+22+1,(objs[i].poy+n)*16)
+					love.graphics.line((objs[i].pox-(moverange-n))*16+22+1,(objs[i].poy+n)*16,(objs[i].pox+1-(moverange-n))*16+22,(objs[i].poy+n)*16)
 					--right
-					love.graphics.line((objs[i].pox+(objs[i].range-n))*16+22+16,(objs[i].poy-(n-1))*16+16,(objs[i].pox+(objs[i].range-n))*16+22+16,(objs[i].poy-n)*16+16)
-					love.graphics.line((objs[i].pox+(objs[i].range-n))*16+22+16,(objs[i].poy-n)*16+17,(objs[i].pox-1+(objs[i].range-n))*16+22+16,(objs[i].poy-n)*16+16)
+					love.graphics.line((objs[i].pox+(moverange-n))*16+22+16,(objs[i].poy-(n-1))*16+16,(objs[i].pox+(moverange-n))*16+22+16,(objs[i].poy-n)*16+16)
+					love.graphics.line((objs[i].pox+(moverange-n))*16+22+16,(objs[i].poy-n)*16+17,(objs[i].pox-1+(moverange-n))*16+22+16,(objs[i].poy-n)*16+16)
 					--up
-					love.graphics.line((objs[i].pox-(n-1))*16+22,(objs[i].poy-(objs[i].range-n))*16+1,(objs[i].pox-(n-2))*16+22,(objs[i].poy-(objs[i].range-n))*16+1)
-					love.graphics.line((objs[i].pox-(n-1))*16+23,(objs[i].poy-(objs[i].range-n))*16+1,(objs[i].pox-(n-1))*16+23,(objs[i].poy-(objs[i].range-(n+1)))*16)
+					love.graphics.line((objs[i].pox-(n-1))*16+22,(objs[i].poy-(moverange-n))*16+1,(objs[i].pox-(n-2))*16+22,(objs[i].poy-(moverange-n))*16+1)
+					love.graphics.line((objs[i].pox-(n-1))*16+23,(objs[i].poy-(moverange-n))*16+1,(objs[i].pox-(n-1))*16+23,(objs[i].poy-(moverange-(n+1)))*16)
 					--down
-					love.graphics.line((objs[i].pox+n)*16+22,(objs[i].poy+(objs[i].range-(n-1)))*16,(objs[i].pox+(n-1))*16+22,(objs[i].poy+(objs[i].range-(n-1)))*16)
-					love.graphics.line((objs[i].pox+n)*16+22,(objs[i].poy+(objs[i].range-(n-1)))*16,(objs[i].pox+n)*16+22,(objs[i].poy+(objs[i].range-n))*16)
+					love.graphics.line((objs[i].pox+n)*16+22,(objs[i].poy+(moverange-(n-1)))*16,(objs[i].pox+(n-1))*16+22,(objs[i].poy+(moverange-(n-1)))*16)
+					love.graphics.line((objs[i].pox+n)*16+22,(objs[i].poy+(moverange-(n-1)))*16,(objs[i].pox+n)*16+22,(objs[i].poy+(moverange-n))*16)
 					end
 				love.graphics.setColor(1,1,1)
 				love.graphics.setLineWidth(2)
+				end
+			end
+		if framecounter%64<32 then
+			for i=1,#objs do
+				--draw attack range
+				if i==selectedpiece or (objs[i].pox==cursorx and objs[i].poy==cursory) then
+					love.graphics.setColor(1,0.25,0.25,1)
+					love.graphics.setLineWidth(1)
+					for n=1,objs[i].range do
+						--left
+						love.graphics.line((objs[i].pox-(objs[i].range-n))*16+22+1,(objs[i].poy+(n-1))*16,(objs[i].pox-(objs[i].range-n))*16+22+1,(objs[i].poy+n)*16)
+						love.graphics.line((objs[i].pox-(objs[i].range-n))*16+22+1,(objs[i].poy+n)*16,(objs[i].pox+1-(objs[i].range-n))*16+22,(objs[i].poy+n)*16)
+						--right
+						love.graphics.line((objs[i].pox+(objs[i].range-n))*16+22+16,(objs[i].poy-(n-1))*16+16,(objs[i].pox+(objs[i].range-n))*16+22+16,(objs[i].poy-n)*16+16)
+						love.graphics.line((objs[i].pox+(objs[i].range-n))*16+22+16,(objs[i].poy-n)*16+17,(objs[i].pox-1+(objs[i].range-n))*16+22+16,(objs[i].poy-n)*16+16)
+						--up
+						love.graphics.line((objs[i].pox-(n-1))*16+22,(objs[i].poy-(objs[i].range-n))*16+1,(objs[i].pox-(n-2))*16+22,(objs[i].poy-(objs[i].range-n))*16+1)
+						love.graphics.line((objs[i].pox-(n-1))*16+23,(objs[i].poy-(objs[i].range-n))*16+1,(objs[i].pox-(n-1))*16+23,(objs[i].poy-(objs[i].range-(n+1)))*16)
+						--down
+						love.graphics.line((objs[i].pox+n)*16+22,(objs[i].poy+(objs[i].range-(n-1)))*16,(objs[i].pox+(n-1))*16+22,(objs[i].poy+(objs[i].range-(n-1)))*16)
+						love.graphics.line((objs[i].pox+n)*16+22,(objs[i].poy+(objs[i].range-(n-1)))*16,(objs[i].pox+n)*16+22,(objs[i].poy+(objs[i].range-n))*16)
+						end
+					love.graphics.setColor(1,1,1)
+					love.graphics.setLineWidth(2)
+					end
 				end
 			end
 		
@@ -513,9 +556,9 @@ function nikodraw()
 			love.graphics.setColor(1,1,1)
 			--menu text
 			if menuframes>30 then
-				local menutext = {"help","end turn","options","retreat"}
-				local seletext = {"HELP","END TURN","OPTIONS","END GAME?"}
-				for i=1,4 do
+				local menutext = {"help","end turn","options","retreat","back"}
+				local seletext = {"HELP","END TURN","OPTIONS","END GAME?","BACK"}
+				for i=1,5 do
 					if i~=menuselect then
 						monoprint(menutext[i],8*5+22,8*3+16*i)
 						end
@@ -590,8 +633,8 @@ function monoprintlines(text,x,y)
 
 
 function nextturn()
-	score[1]=score[1]-5
-	score[2]=score[2]-5
+	score[1]=score[1]-2
+	score[2]=score[2]-2
 	selectedpiece=0
 	menu=false
 	currentteam=currentteam+1
