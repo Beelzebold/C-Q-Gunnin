@@ -37,6 +37,7 @@ function objAt(ox,oy)
 
 function killObj(obj,killer)
 	killer.exp=killer.exp+(obj.class*2+3)
+	if obj.team==2 then pkills=pkills+1 end
 	if killer.exp>killer.lvl*6+5 and killer.lvl<5 then
 		music.victory:play()
 		

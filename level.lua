@@ -131,6 +131,8 @@ function initLevel(lev)
 	
 	score = {0,0}
 	spilledblood = {0,0}
+	pkills = 0
+	pdmg = 0
 	turncounter = 0
 	currentteam = 1
 	

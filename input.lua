@@ -272,12 +272,14 @@ function zpress(px,py)
 					
 					o.actpts=o.actpts-o.atkcost
 					e.hp=math.max(0,e.hp-o.dmg)
+					pdmg=pdmg+o.dmg
 					spilledblood[currentteam]=spilledblood[currentteam]+(o.dmg*80)
 					score[currentteam]=score[currentteam]+(o.dmg*2)
 					score[e.team]=score[e.team]-math.floor(o.dmg*1.5)
 					spilledblood[currentteam]=spilledblood[currentteam]+15
 					if love.math.random(0,3)<1 then
 						e.hp=math.max(0,e.hp-math.floor(o.dmg*0.5))
+						pdmg=pdmg+math.floor(o.dmg*0.5)
 						spilledblood[currentteam]=spilledblood[currentteam]+(o.dmg*60)
 						score[currentteam]=score[currentteam]+math.floor(o.dmg*1.5)
 						spilledblood[currentteam]=spilledblood[currentteam]+13
@@ -291,7 +293,7 @@ function zpress(px,py)
 			o=objs[selectedpiece]
 			--clicked on a tile
 			local cursordist = math.abs(o.pox-px)+math.abs(o.poy-py)
-			local moverange = math.floor(20/o.movecost)
+			local moverange = math.floor(o.actpts/o.movecost)
 			print("tile clicked is id"..level[(px+1)+py*16])
 			if level[(px+1)+py*16]>2 then
 				--clicked on a wall/water

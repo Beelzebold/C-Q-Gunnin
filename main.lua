@@ -23,6 +23,7 @@ realframecounter = 0
 
 turncounter = 0
 currentteam = 1
+winningteam = 1
 
 selectedpiece = 0
 
@@ -49,6 +50,8 @@ drawpathmap = false
 
 score = {0,0}
 spilledblood = {0,0}
+pkills = 0
+pdmg = 0
 
 levelnum = 0
 
@@ -60,6 +63,8 @@ require("aiscripts")
 
 require("helptext")
 
+require("gamesave")
+
 local json = require("json")
 
 function saveConfig()
@@ -68,7 +73,27 @@ function saveConfig()
 	updateVol()
 	end
 
-function love.load()
+function love.load(args)
+	for _,v in ipairs(args) do
+		local vfilename = v:match("[^/\\]+$") --make sure we just have the filename, not the full path.
+		if love.filesystem.getInfo(vfilename,"file") then
+			love.filedropped(love.filesystem.newFile(vfilename))
+			gamestate=STATE_CUSTOM
+			end
+		local argfunctions = {
+			["-pathmap"] = function()
+				drawpathmap=true
+				end,
+			["-clearcfg"] = function()
+				local configf=love.filesystem.newFile("cqgcfg.json")
+				config = {sfx = 5,mus = 5,ai_skill = 3,ai_speed = 1,showrange = false,control = 1,version = configversion}
+				love.filesystem.write("cqgcfg.json",json.encode(config))
+				end,
+		}
+		if argfunctions[v]~=nil then
+			argfunctions[v]()
+			end
+		end
 	--framerate limiting
 	min_dt = 1/60
 	next_time = love.timer.getTime()
@@ -172,8 +197,15 @@ function love.update(dt)
 		
 		local t=countTeamPieces()
 		if (t[1]==0 or t[2]==0) and gamestate==STATE_GAME then
-			if currentteam==2 or mapstats[levelnum].nextmap<1 then
-				score[currentteam]=score[currentteam]+60
+			if winningteam==2 or mapstats[levelnum].nextmap<1 then
+				--win bonus
+				score[winningteam]=score[winningteam]+60
+				
+				--add player stats
+				stats.blood = stats.blood + math.floor(bloodspilled[1]/1000+0.5)
+				stats.damage = stats.damage + pdmg
+				stats.kills = stats.kills + pkills
+				
 				gamestate=STATE_POST
 				else
 				nextLevel(mapstats[levelnum].nextmap)
@@ -407,6 +439,12 @@ function nikodraw()
 		local grade = math.ceil((score[currentteam]/mapstats[levelnum].par)*5-1)
 		grade = math.max(math.min(grade,8),1)
 		monoprint("GRADE "..lettergrades[grade],46,8*10)
+		
+		if winningteam~=1 then
+			love.graphics.setColor(1,0,0,1)
+			monoprint("FAIL",46,8*12)
+			love.graphics.setColor(1,1,1)
+			end
 		end
 	
 	if gamestate==STATE_GAME then
@@ -601,11 +639,12 @@ function monoprint(text,x,y)
 	--danke, chatgpt
 	for i = 1, #text do
 		local char = text:sub(i, i)
+		local r,g,b,a = love.graphics.getColor()
 		love.graphics.setColor(0,0,0,1)
 		if char~=" " then
 			love.graphics.rectangle("fill",x + (i - 1) * 8, y,8,8)
 			end
-		love.graphics.setColor(1,1,1)
+		love.graphics.setColor(r,g,b,1)
 		love.graphics.print(char, x + (i - 1) * 8, y)
 		end
 	end
@@ -664,5 +703,6 @@ function exitgame()
 function gameover(team)
 	fade=0.5
 	currentteam=1
+	winningteam=team
 	--score[team]=score[team]+60-turncounter*5
 	end
