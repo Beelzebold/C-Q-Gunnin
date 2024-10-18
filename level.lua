@@ -1,17 +1,20 @@
 --level is 16x12
 --pieces are id,team,x,y
 --1=dirt 2=floor 3=wall 4=water
---1=pistol 2=rifle 3=sniper 4=machinegun
+--1=pistol 2=rifle 3=sniper 4=machinegun etc
 
 level = {}
 pathmap = {{}}--2d array of bools; used for pathfinding
 maps = {
+	[-6]={},--blank slot for a chosen endless level
 	[-1]={},--blank slot for a loaded custom level
 } 
 mappieces = {
+	[-6]={},--blank slot for a chosen endless level
 	[-1]={},--blank slot for a loaded custom level
 }
 mapstats = {
+	[-6]={nextmap=-6},--blank slot for a chosen endless level (choose random song on run start)
 	[-1]={music=1},--blank slot for a loaded custom level
 	{--courtyard
 		nextmap=0,
@@ -93,6 +96,22 @@ mapstats = {
 		nextmap=0,
 		music=4,
 	},
+	{--streetsweep
+		nextmap=109,
+		music=5,
+	},
+	[109]={--streetsweep 2
+		nextmap=209,
+		music=5,
+	},
+	[209]={--streetsweep 3
+		nextmap=309,
+		music=5,
+	},
+	[309]={--streetsweep 4
+		nextmap=0,
+		music=5,
+	},
 }
 
 mapdesc = {
@@ -104,6 +123,7 @@ mapdesc = {
 	"it's time to reclaim our\nbunker here. an enemy\nleader is holed up deep\ninside, but security is\nvery tight.",
 	"with such a large blow\ndealt to them recently,\nthe enemies are beginning\nto get desperate.\ndefend our honor here.",
 	"this is  it, supposedly\ntheir final base of\noperations within our\nterritory.\ngood luck, soldiers!",
+	"time for the BONUS level!\n \ngive em hell, alright?",
 }
 ignoredpiece1 = 0
 ignoredpiece2 = 0
@@ -126,6 +146,14 @@ function generatePathMap()
 	end
 
 function initLevel(lev)
+	endlessscreen = 1
+	endlesstimer = 602
+	if lev==-6 then
+		--in endless mode:
+		loadMapFile("endlessmaps/endless"..love.math.random(1,maxendlessmaps)..".cqg",-6)
+		mapstats[-6].music = love.math.random(1,5)
+		end
+	
 	fade = 1
 	loadinglevel = true
 	
@@ -133,6 +161,7 @@ function initLevel(lev)
 	spilledblood = {0,0}
 	pkills = 0
 	pdmg = 0
+	pdeaths = 0
 	turncounter = 0
 	currentteam = 1
 	
@@ -147,6 +176,20 @@ function initLevel(lev)
 	generatePathMap()
 	end
 function nextLevel(lev)
+	if levelnum==-6 then
+		--in endless mode:
+		endlessscreen=endlessscreen+1
+		if endlessscreen>stats.screenendless then stats.screenendless=endlessscreen end
+		endlesstimer=endlesstimer+90
+		if endlessscreen%2==1 then
+			local t=countTeamPieces()
+			if t[1]<6 then
+				makeObj(love.math.random(1,4),1,-1,1)
+				end
+			end
+		loadMapFile("endlessmaps/endless"..love.math.random(1,maxendlessmaps)..".cqg",-6)
+		end
+	
 	score[1]=score[1]+20-turncounter
 	
 	currentteam = 1
@@ -250,6 +293,38 @@ function loadMapFile(filename,num)
 		mapstats[num].name = mapstats[num].name..char
 		end
 	mapstats[num].par = string.byte(filestr,205)*50
+	
+	file:close()
+	end
+
+
+--endless levels need to be made entirely with "ENDLESS" pieces
+--there need to be six green ones, and 12 blue ones.
+--green ones are placed in order of which piece should spawn there.
+--blue ones are placed in order of how late they should wait to spawn their piece.
+--ie earlier in a run, blue pieces with lower numbers will be placed, later more and more start to spawn in the other places up to 12
+function loadEndlessMap(filename)
+	local file = love.filesystem.newFile(filename)
+	file:open("r")
+	local filestr = file:read()
+	maps[-6] = {}
+	for i=1,(16*12) do
+		maps[-6][i] = string.byte(filestr,i)
+		end
+	local o = {}
+	mappieces[-6] = {}
+	for i=205,#filestr do
+		if i%4~=0 then
+			o[i%4] = string.byte(filestr,i+1)
+			else
+			o[4] = string.byte(filestr,i+1)
+			table.insert(mappieces[-6],o)
+			o = {}
+			end
+		end
+	
+	if mapstats[-6]==nil then mapstats[-6] = {} end
+	mapstats[-6].name="Endless"
 	
 	file:close()
 	end

@@ -2,6 +2,7 @@
 --top down gridbased turnbased strategy game with lots of cqc and guns
 
 configversion = 1
+gameversion = "1.0.0"
 
 gamestate = 0
 STATE_TITLE = 0
@@ -11,6 +12,7 @@ STATE_GAME = 3
 STATE_POST = 4
 STATE_OPTS = 5
 STATE_GAMEOPT = 6
+STATE_STATS = 7
 
 cursorx = 5
 cursory = 5
@@ -42,6 +44,13 @@ loadinglevel = false
 endlv = false
 custommenu = false
 
+apluses = {0,0,0,0,0,0,0,0}
+maxmaxmap = 8
+maxendlessmaps = 12
+
+endlessscreen = 1
+endlesstimer = 601
+
 skillnames = {"easy","medium","normal"}
 controlnames = {"mouse","touch"}
 
@@ -52,6 +61,7 @@ score = {0,0}
 spilledblood = {0,0}
 pkills = 0
 pdmg = 0
+pdeaths = 0
 
 levelnum = 0
 
@@ -74,6 +84,7 @@ function saveConfig()
 	end
 
 function love.load(args)
+	print("CQGunnin v"..gameversion)
 	for _,v in ipairs(args) do
 		local vfilename = v:match("[^/\\]+$") --make sure we just have the filename, not the full path.
 		if love.filesystem.getInfo(vfilename,"file") then
@@ -150,7 +161,18 @@ function love.load(args)
 	loadMapFile("maps/showdown.cqg",8)
 	loadMapFile("maps/showdown2.cqg",108)
 	loadMapFile("maps/showdown3.cqg",208)
-	maxmap=8
+	loadMapFile("maps/street-sweep.cqg",9)
+	loadMapFile("maps/street-sweep2.cqg",109)
+	loadMapFile("maps/street-sweep3.cqg",209)
+	loadMapFile("maps/street-sweep4.cqg",309)
+	maxmap=1
+	
+	if love.filesystem.getInfo("cqgsave.cqs","file") then
+		loadSave()
+		end
+	if apluses[1]>0 and apluses[2]>0 and apluses[3]>0 and apluses[4]>0 and apluses[5]>0 and apluses[6]>0 and apluses[7]>0 and apluses[8]>0 then
+		maxmap=9
+		end
 	
 	local scale = love.graphics.getHeight()/224
 	xofs = (love.graphics.getWidth()-(300*scale))/2
@@ -172,11 +194,18 @@ function love.update(dt)
 		aistate = AITurn()
 		end
 	
+	if levelnum==-6 and currentteam==1 then
+		endlesstimer=endlesstimer-dt
+		if endlesstimer<0 then
+			gameover(2)
+			end
+		end
+	
 	if framecounter%32<1 and (gamestate==STATE_GAME or gamestate==STATE_GAMEOPT) and (not helpscreen) then music["battle"..mapstats[levelnum].music]:play() end
 	if framecounter%16<1 and helpscreen and gamestate==STATE_GAME then music.helpme:play() end
 	if framecounter%16<1 and gamestate==STATE_POST then music.results:play() end
 	if framecounter%16<1 and gamestate==STATE_MAPSEL or gamestate==STATE_CUSTOM then music.menu:play() end
-	if (gamestate==STATE_TITLE or gamestate==STATE_OPTS) then music.title:play() end
+	if (gamestate==STATE_TITLE or gamestate==STATE_OPTS or gamestate==STATE_STATS) then music.title:play() end
 	if (menu) then
 		menuframes=menuframes+dt*60
 		else
@@ -196,15 +225,35 @@ function love.update(dt)
 		optscreen=optmenu
 		
 		local t=countTeamPieces()
-		if (t[1]==0 or t[2]==0) and gamestate==STATE_GAME then
-			if winningteam==2 or mapstats[levelnum].nextmap<1 then
+		if (t[1]==0 or t[2]==0 or (levelnum==-6 and endlesstimer<0)) and gamestate==STATE_GAME then
+			if winningteam==2 or (mapstats[levelnum].nextmap<1 and levelnum~=-6) then
 				--win bonus
 				score[winningteam]=score[winningteam]+60
+				--perfect bonus
+				if pdeaths<1 then score[winningteam]=math.floor(score[winningteam]*1.3+10) end
 				
 				--add player stats
-				stats.blood = stats.blood + math.floor(bloodspilled[1]/1000+0.5)
+				stats.blood = stats.blood + math.floor(spilledblood[1]/1000+0.5)
 				stats.damage = stats.damage + pdmg
 				stats.kills = stats.kills + pkills
+				if levelnum~=-6 then
+					--you have to at least get a C to unlock the next map
+					local grade = math.ceil((score[currentteam]/mapstats[levelnum%100].par)*5-1)
+					if winningteam==1 and grade>2 then
+						if levelnum%100==maxmap then maxmap=math.min(maxmap+1,maxmaxmap) end
+						end
+					
+					--A+ update
+					if levelnum%100<9 then
+						if grade>5 then apluses[levelnum%100]=1 end
+						end
+					end
+				
+				updateSave()
+				
+				if apluses[1]>0 and apluses[2]>0 and apluses[3]>0 and apluses[4]>0 and apluses[5]>0 and apluses[6]>0 and apluses[7]>0 and apluses[8]>0 then
+					maxmap=9
+					end
 				
 				gamestate=STATE_POST
 				else
@@ -285,11 +334,11 @@ function nikodraw()
 		love.graphics.setColor(1,1,1)
 		monoprint("by beelzebold",8*3,8*22)
 		monoprint("aka kiwi",8*6,8*23)
-		monoprint("v0.1.0 pre",8*3,8*24)
+		monoprint("v"..gameversion,8*3,8*24)
 		--the text
-		local menutext = {"missions","custom map","endless","options","exit"}
-		local seletext = {"MISSIONS","CUSTOM MAP","ENDLESS","OPTIONS","EXIT?"}
-		for i=1,5 do
+		local menutext = {"missions","custom map","endless","options","stats","exit"}
+		local seletext = {"MISSIONS","CUSTOM MAP","ENDLESS","OPTIONS","STATS","EXIT?"}
+		for i=1,6 do
 			if i~=menuselect then
 				monoprint(menutext[i],8*5,8*3+16*i)
 				end
@@ -328,6 +377,34 @@ function nikodraw()
 			end
 		monoprintlines("use the ARROW KEYS to\nnavigate this menu!",8*5,8*14)
 		end
+	if gamestate==STATE_STATS then
+		love.graphics.clear(0,0,0)
+		love.graphics.setColor(1,1,1)
+		--the window
+		love.graphics.setColor(0.3,0.2,0)
+		love.graphics.rectangle("fill",8*2,8*2,224,176)
+		love.graphics.setColor(0,0,0,1)
+		love.graphics.rectangle("fill",8*3,8*3,224-16,176-16)
+		love.graphics.setColor(1,1,1,1)
+		love.graphics.rectangle("line",4+8*2,4+8*2,216,168)
+		--the text
+		monoprint("ENEMIES killed",8*4,8*4)
+		monoprint(""..stats.kills,8*5,8*5)
+		monoprint("BLOOD spilled",8*4,8*7)
+		monoprint(""..stats.blood.." L",8*5,8*8)
+		monoprint("DAMAGE dealt",8*4,8*10)
+		monoprint(""..stats.damage,8*5,8*11)
+		monoprint("ENDLESS best",8*4,8*13)
+		monoprint(""..stats.screenendless,8*5,8*14)
+		
+		monoprint("COMPLETION",8*6,8*17)
+		local apluscount = 0
+		for i=1,8 do
+			apluscount=apluscount+apluses[i]
+			end
+		--maxmap goes to 9 but starts at 1 so subtract 1, apluscount goes to 8, each one is worth 100/16 percent points
+		monoprint(""..math.ceil(((maxmap-1)+apluscount)*(100/16)) .."%",8*7,8*18)
+		end
 	
 	if gamestate==STATE_MAPSEL then
 		--map select background
@@ -359,6 +436,15 @@ function nikodraw()
 		
 		monoprint("par score",46+(8*11),8*6)
 		monoprint(""..mapstats[menuselect].par,46+(8*12),8*7)
+		
+		if menuselect<9 then
+			love.graphics.setColor(0.3,0.15,0.15,1)
+			if apluses[menuselect]>0 then
+				love.graphics.setColor(0,1,0,1)
+				end
+			monoprint("A+",46+(8*11),8*9)
+			love.graphics.setColor(1,1,1)
+			end
 		
 		monoprintlines(mapdesc[menuselect],46,8*12)
 		
@@ -421,7 +507,7 @@ function nikodraw()
 		love.graphics.setColor(0,0,0,1)
 		love.graphics.rectangle("fill",22+8*3,8*3,224-16,8)
 		love.graphics.rectangle("fill",22+8*3,8*5,224-16,176-32)
-		love.graphics.setColor(teamcol[currentteam])
+		love.graphics.setColor(teamcol[winningteam])
 		love.graphics.rectangle("line",26+8*2,4+8*2,216,168)
 		love.graphics.line(26+8*2+1,4+8*4,216+26+8*2-1,4+8*4)
 		love.graphics.setColor(1,1,1)
@@ -433,17 +519,25 @@ function nikodraw()
 		monoprint("blood spilled:  "..math.floor(spilledblood[currentteam]/100)/10 .."L",46,8*6)
 		
 		monoprint("final score:    "..score[currentteam],46,8*8)
-		monoprint("par score:      "..mapstats[levelnum].par,46,8*9)
-		
-		local lettergrades = {"F","D","C","B","A","A+","S","S+"}
-		local grade = math.ceil((score[currentteam]/mapstats[levelnum].par)*5-1)
-		grade = math.max(math.min(grade,8),1)
-		monoprint("GRADE "..lettergrades[grade],46,8*10)
+		if levelnum~=-6 then
+			monoprint("par score:      "..mapstats[levelnum%100].par,46,8*9)
+			
+			local lettergrades = {"F","D","C","B","A","A+","S","S+"}
+			local grade = math.ceil((score[currentteam]/mapstats[levelnum%100].par)*5-1)
+			grade = math.max(math.min(grade,8),1)
+			monoprint("GRADE "..lettergrades[grade],46,8*10)
+			end
 		
 		if winningteam~=1 then
 			love.graphics.setColor(1,0,0,1)
 			monoprint("FAIL",46,8*12)
 			love.graphics.setColor(1,1,1)
+			else
+			if pdeaths<1 then
+				love.graphics.setColor(0,1,0,1)
+				monoprint("PERFECT",46,8*12)
+				love.graphics.setColor(1,1,1)
+				end
 			end
 		end
 	
@@ -586,6 +680,13 @@ function nikodraw()
 		monoprint(""..score[currentteam],30+(8*27),200)
 		monoprint("turn",30+(8*22),208)
 		monoprint(""..turncounter,30+(8*27),208)
+		if levelnum==-6 then
+			monoprint("screen",30+(8*20),216)
+			monoprint(""..endlessscreen,30+(8*27),216)
+			monoprint("timer",30+(8*21),192)
+			if endlesstimer<90 and framecounter%64<8 then love.graphics.setColor(1,0,0,1) end
+			monoprint(""..timerText(endlesstimer),30+(8*26),192)
+			end
 		
 		--draw the menu
 		if menuframes>0 then
@@ -632,6 +733,15 @@ function nikodraw()
 			monoprintlines(helppages[helppage],46,8*5)
 			end
 		end
+	end
+
+function timerText(timet)
+	timet=math.max(timet,0)
+	local strmins = ""..math.floor(timet/60)
+	local strsec = ""..math.floor(timet%60)
+	if timet%60<10 then strsec="0"..strsec end
+	if timet/60<10 then strmins=" "..strmins end
+	return strmins..":"..strsec
 	end
 
 function monoprint(text,x,y)

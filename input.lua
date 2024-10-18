@@ -98,6 +98,10 @@ function love.keypressed(key,scancode,isrepeat)
 	
 	if gamestate==STATE_MAPSEL then
 		if key=="right" then
+			local maxm = maxmap
+			if apluses[1]>0 and apluses[2]>0 and apluses[3]>0 and apluses[4]>0 and apluses[5]>0 and apluses[6]>0 and apluses[7]>0 and apluses[8]>0 then
+				maxm=maxm+1
+				end
 			menuselect=menuselect+1
 			if menuselect>maxmap then menuselect=maxmap end
 			end
@@ -195,6 +199,11 @@ function love.keypressed(key,scancode,isrepeat)
 			menuselect=1
 			end
 		end
+	if gamestate==STATE_STATS then
+		if key=="x" or key=="escape" then
+			gamestate=STATE_TITLE
+			end
+		end
 	if gamestate==STATE_TITLE then
 		if key=="down" then
 			menuselect=menuselect+1
@@ -215,13 +224,17 @@ function love.keypressed(key,scancode,isrepeat)
 					fade=1
 					end,
 				function()--endless
-					
+					initLevel(-6)
 					end,
 				function()--optmenu
 					gamestate=STATE_OPTS
 					menuselect=1
 					end,
-				function()
+				function()--stats
+					gamestate=STATE_STATS
+					menuselect=1
+					end,
+				function()--exit
 					love.event.quit()
 					end
 			}
@@ -388,7 +401,7 @@ function click(cx,cy)
 	if (gamestate==STATE_MAPSEL or gamestate==STATE_CUSTOM) and cx>46/300 and cx<254/300 then
 		love.keypressed("z",nil,false)
 		end
-	if gamestate==STATE_TITLE and cx>36/300 and cx<116/300 and cy>36/224 and cy<116/224 then
+	if gamestate==STATE_TITLE and cx>36/300 and cx<116/300 and cy>36/224 and cy<132/224 then
 		local sel = math.ceil((cy-36/224)*224/16)
 		menuselect = sel
 		love.keypressed("z",nil,false)

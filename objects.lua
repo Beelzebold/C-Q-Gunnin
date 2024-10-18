@@ -10,20 +10,32 @@ classes = {
 }
 
 function makeObj(class,team,ox,oy)
-	local o = {hp=20,actpts=20,pox=ox,poy=oy}
-	if class==6 then o.hp=40 end
-	o.class=class
-	o.team=team
-	o.dmg=classes[class].dmg
-	o.range=classes[class].range
-	o.atkcost=classes[class].atkcost
-	o.movecost=classes[class].movecost
-	
-	o.exp=0
-	o.lvl=1
-	
-	o.id=#objs+1
-	table.insert(objs,o)
+	if class~=7 then
+		local o = {hp=20,actpts=20,pox=ox,poy=oy}
+		if class==6 then o.hp=40 end
+		o.class=class
+		o.team=team
+		o.dmg=classes[class].dmg
+		o.range=classes[class].range
+		o.atkcost=classes[class].atkcost
+		o.movecost=classes[class].movecost
+		
+		o.exp=0
+		o.lvl=1
+		
+		o.id=#objs+1
+		table.insert(objs,o)
+		else
+		local t=countTeamPieces()
+		if levelnum~=-6 then return end
+		if team==1 then
+			if t[1]<4 then makeObj(2,1,ox,oy) end
+			return
+			end
+		if t[2]<(endlessscreen/3)+2+love.math.random(0,2) then
+			makeObj(love.math.random(1,love.math.random(math.min(math.floor(endlessscreen/4)+2,6),2)),2,ox,oy)
+			end
+		end
 	end
 
 function objAt(ox,oy)
@@ -37,7 +49,7 @@ function objAt(ox,oy)
 
 function killObj(obj,killer)
 	killer.exp=killer.exp+(obj.class*2+3)
-	if obj.team==2 then pkills=pkills+1 end
+	if obj.team==2 then pkills=pkills+1 else pdeaths=pdeaths+1 end
 	if killer.exp>killer.lvl*6+5 and killer.lvl<5 then
 		music.victory:play()
 		
