@@ -115,7 +115,7 @@ mapstats = {
 	
 	--NEW GAME PLUS!!!
 	[1001]={--courtyard+
-		nextmap=1001,
+		nextmap=1101,
 		music=1,
 	},
 	[1101]={--courtyard+ 2

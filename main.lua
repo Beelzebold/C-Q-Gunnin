@@ -250,7 +250,7 @@ function love.update(dt)
 				stats.kills = stats.kills + pkills
 				if levelnum~=-6 then
 					--you have to at least get a C to unlock the next map
-					local grade = math.ceil((score[currentteam]/mapstats[levelnum%100].par)*5-1)
+					local grade = math.ceil((score[currentteam]/mapstats[(levelnum%100) + ngplusoffs].par)*5-1)
 					if winningteam==1 and grade>2 then
 						if not ngplus then
 							if levelnum%100==maxmap then maxmap=math.min(maxmap+1,maxmaxmap) end
@@ -550,10 +550,10 @@ function nikodraw()
 		
 		monoprint("final score:    "..score[currentteam],46,8*8)
 		if levelnum~=-6 then
-			monoprint("par score:      "..mapstats[levelnum%100].par,46,8*9)
+			monoprint("par score:      "..mapstats[(levelnum%100) + ngplusoffs].par,46,8*9)
 			
 			local lettergrades = {"F","D","C","B","A","A+","S","S+"}
-			local grade = math.ceil((score[currentteam]/mapstats[levelnum%100].par)*5-1)
+			local grade = math.ceil((score[currentteam]/mapstats[(levelnum%100) + ngplusoffs].par)*5-1)
 			grade = math.max(math.min(grade,8),1)
 			monoprint("GRADE "..lettergrades[grade],46,8*10)
 			end
