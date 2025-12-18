@@ -119,6 +119,7 @@ function love.keypressed(key,scancode,isrepeat)
 			if apluses[1]>0 and apluses[2]>0 and apluses[3]>0 and apluses[4]>0 and apluses[5]>0 and apluses[6]>0 and apluses[7]>0 and apluses[8]>0 then
 				ngplus = not ngplus
 				ngplusoffs = ngplus and 1000 or 0
+				menuselect = math.min(menuselect,ngmaxmap)
 				end
 			end
 		end
