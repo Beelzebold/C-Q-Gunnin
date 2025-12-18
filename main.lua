@@ -66,6 +66,7 @@ pdeaths = 0
 levelnum = 0
 
 ngplus = false
+ngplusoffs = 0
 
 require("assets")
 require("level")
@@ -143,6 +144,7 @@ function love.load(args)
 	screenShader = love.graphics.newShader("palettequantize.gl")
 	love.graphics.setShader(screenShader)
 	
+	-- load main levels
 	loadMapFile("maps/courtyard.cqg",1)
 	loadMapFile("maps/waterways.cqg",2)
 	loadMapFile("maps/river blitz.cqg",3)
@@ -167,7 +169,15 @@ function love.load(args)
 	loadMapFile("maps/street-sweep2.cqg",109)
 	loadMapFile("maps/street-sweep3.cqg",209)
 	loadMapFile("maps/street-sweep4.cqg",309)
+	
+	-- load NG+ levels
+	loadMapFile("ngmaps/courtyard+1.cqg",1001)
+	loadMapFile("ngmaps/courtyard+2.cqg",1101)
+	--loadMapFile("ngmaps/waterways+1.cqg",1002)
+	--loadMapFile("ngmaps/waterways+2.cqg",1102)
+	
 	maxmap=1
+	ngmaxmap=1
 	
 	if love.filesystem.getInfo("cqgsave.cqs","file") then
 		loadSave()
@@ -242,7 +252,11 @@ function love.update(dt)
 					--you have to at least get a C to unlock the next map
 					local grade = math.ceil((score[currentteam]/mapstats[levelnum%100].par)*5-1)
 					if winningteam==1 and grade>2 then
-						if levelnum%100==maxmap then maxmap=math.min(maxmap+1,maxmaxmap) end
+						if not ngplus then
+							if levelnum%100==maxmap then maxmap=math.min(maxmap+1,maxmaxmap) end
+							else
+							if levelnum%100==ngmaxmap then ngmaxmap=math.min(ngmaxmap+1,maxmaxmap+1) end
+							end
 						end
 					
 					--A+ update
@@ -405,7 +419,8 @@ function nikodraw()
 			apluscount=apluscount+apluses[i]
 			end
 		--maxmap goes to 9 but starts at 1 so subtract 1, apluscount goes to 8, each one is worth 100/16 percent points
-		monoprint(""..math.ceil(((maxmap-1)+apluscount)*(100/16)) .."%",8*7,8*18)
+		--ngmaxmap goes to 9, also starts at 1, once ngmaxmap is capped it'll give another 100% completion for 200% total
+		monoprint(""..(math.ceil(((maxmap-1)+apluscount)*(100/16))) + math.ceil((ngmaxmap-1) * (100/9)) .."%",8*7,8*18)
 		end
 	
 	if gamestate==STATE_MAPSEL then
@@ -425,7 +440,7 @@ function nikodraw()
 		love.graphics.line(26+8*2+1,4+8*4,216+26+8*2-1,4+8*4)
 		
 		--arrows
-		if menuselect<maxmap then
+		if menuselect< (ngplus and ngmaxmap or maxmap) then
 			love.graphics.draw(graphics.arrowr,(framecounter%64<32) and 270 or 271,96)
 			end
 		if menuselect>1 then
@@ -434,12 +449,12 @@ function nikodraw()
 		
 		--the text
 		monoprint(mapstats[menuselect].name,46,8*3)
-		monoprint("map "..menuselect,46+(8*20),8*3)
+		monoprint("map "..menuselect .. (ngplus and "+" or ""),46+(8*20),8*3)
 		
 		monoprint("par score",46+(8*11),8*6)
-		monoprint(""..mapstats[menuselect].par,46+(8*12),8*7)
+		monoprint(""..mapstats[menuselect + ngplusoffs].par,46+(8*12),8*7)
 		
-		if menuselect<9 then
+		if menuselect<9 and not ngplus then
 			love.graphics.setColor(0.3,0.15,0.15,1)
 			if apluses[menuselect]>0 then
 				love.graphics.setColor(0,1,0,1)
@@ -455,8 +470,21 @@ function nikodraw()
 		for i=1,(16*12) do
 			local x=(i-1)%16
 			local y=math.floor((i-1)/16)
-			local tgraph = tilegraphics[maps[menuselect][i] ]
+			local tgraph = tilegraphics[maps[menuselect + ngplusoffs][i] ]
 			love.graphics.draw(graphics[tgraph],x*4+62,y*4+44,0,0.25,0.25)
+			end
+		
+		--if we're ready for ng+, draw indicators for that
+		if apluses[1]>0 and apluses[2]>0 and apluses[3]>0 and apluses[4]>0 and apluses[5]>0 and apluses[6]>0 and apluses[7]>0 and apluses[8]>0 then
+			love.graphics.setColor(0,0,0)
+			love.graphics.rectangle("fill",0,0,21*8,8)
+			love.graphics.setColor(1,1,1)
+			monoprint("PRESS N TO TOGGLE NG+",0,0)
+			if ngplus == true then
+				love.graphics.setColor(1,0,0)
+				monoprint("NG+!",0,8)
+				love.graphics.setColor(1,1,1)
+				end
 			end
 		end
 	

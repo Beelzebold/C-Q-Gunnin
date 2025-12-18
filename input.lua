@@ -99,11 +99,9 @@ function love.keypressed(key,scancode,isrepeat)
 	if gamestate==STATE_MAPSEL then
 		if key=="right" then
 			local maxm = maxmap
-			if apluses[1]>0 and apluses[2]>0 and apluses[3]>0 and apluses[4]>0 and apluses[5]>0 and apluses[6]>0 and apluses[7]>0 and apluses[8]>0 then
-				maxm=maxm+1
-				end
+			if ngplus then maxm = ngmaxmap end
 			menuselect=menuselect+1
-			if menuselect>maxmap then menuselect=maxmap end
+			if menuselect>maxm then menuselect=maxm end
 			end
 		if key=="left" then
 			menuselect=menuselect-1
@@ -111,11 +109,17 @@ function love.keypressed(key,scancode,isrepeat)
 			end
 		
 		if key=="z" or key=="enter" then
-			initLevel(menuselect)
+			initLevel(menuselect + ngplusoffs)
 			end
 		if key=="x" or key=="escape" then
 			fade=1
 			exiting=true
+			end
+		if key=="n" then
+			if apluses[1]>0 and apluses[2]>0 and apluses[3]>0 and apluses[4]>0 and apluses[5]>0 and apluses[6]>0 and apluses[7]>0 and apluses[8]>0 then
+				ngplus = not ngplus
+				ngplusoffs = ngplus and 1000 or 0
+				end
 			end
 		end
 	if gamestate==STATE_CUSTOM then

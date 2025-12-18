@@ -112,6 +112,16 @@ mapstats = {
 		nextmap=0,
 		music=5,
 	},
+	
+	--NEW GAME PLUS!!!
+	[1001]={--courtyard+
+		nextmap=1001,
+		music=1,
+	},
+	[1101]={--courtyard+ 2
+		nextmap=0,
+		music=1,
+	},
 }
 
 mapdesc = {

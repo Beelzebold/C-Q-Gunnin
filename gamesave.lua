@@ -7,7 +7,7 @@ function updateSave()
 	local kills = intToBytes(stats.kills)
 	local blood = intToBytes(stats.blood)
 	local damage = intToBytes(stats.damage)
-	local endless = intToBytes(stats.screenendless)
+	local endless = intToBytes(math.min(stats.screenendless,255))
 	savestr = savestr..string.char(#kills+6)
 	savestr = savestr..string.char(#kills+#blood+6)
 	savestr = savestr..string.char(#kills+#blood+#damage+6)
@@ -23,6 +23,7 @@ function updateSave()
 	for _,v in ipairs(endless) do
 		savestr = savestr..v
 		end
+	savestr = savestr .. string.char(ngmaxmap)
 	local savef = love.filesystem.newFile("cqgsave.cqs")
 	love.filesystem.write("cqgsave.cqs",savestr)
 	end
@@ -48,10 +49,12 @@ function loadSave()
 		local place = i-string.byte(savestr,4) --0=1s, 1=256s, 3=65ks, etc
 		stats.damage = stats.damage + (string.byte(savestr,i)*(2^(place*8)))
 		end
-	stats.screenendless = 0
-	for i=string.byte(savestr,5),string.len(savestr) do
-		local place = i-string.byte(savestr,5) --0=1s, 1=256s, 3=65ks, etc
-		stats.screenendless = stats.screenendless + (string.byte(savestr,i)*(2^(place*8)))
+	stats.screenendless = string.byte(savestr,string.byte(savestr,5))
+	
+	if string.len(savestr) <= string.byte(savestr,5) then
+		ngmaxmap = 1
+		else
+		ngmaxmap = string.byte(savestr,string.byte(savestr,5)+1)
 		end
 	
 	print("loaded save")
@@ -61,6 +64,7 @@ function loadSave()
 	print("blood spilled:    "..stats.blood.." liters")
 	print("damage dealt:     "..stats.damage)
 	print("endless streak:   "..stats.screenendless)
+	print("ng+ progress:     "..ngmaxmap)
 	print("A+ grades:")
 	for i=1,8 do
 		if apluses[i]>0 then print("MAP "..i) end
