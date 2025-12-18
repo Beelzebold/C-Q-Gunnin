@@ -2,7 +2,7 @@
 --top down gridbased turnbased strategy game with lots of cqc and guns
 
 configversion = 1
-gameversion = "1.0.0"
+gameversion = "1.1.0"
 
 gamestate = 0
 STATE_TITLE = 0
@@ -64,6 +64,8 @@ pdmg = 0
 pdeaths = 0
 
 levelnum = 0
+
+ngplus = false
 
 require("assets")
 require("level")
