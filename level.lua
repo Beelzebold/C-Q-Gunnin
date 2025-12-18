@@ -122,6 +122,14 @@ mapstats = {
 		nextmap=0,
 		music=1,
 	},
+	[1002]={--waterways+
+		nextmap=1102,
+		music=3,
+	},
+	[1102]={--waterways+ 2
+		nextmap=0,
+		music=3,
+	},
 }
 
 mapdesc = {

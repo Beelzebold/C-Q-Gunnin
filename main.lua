@@ -173,8 +173,8 @@ function love.load(args)
 	-- load NG+ levels
 	loadMapFile("ngmaps/courtyard+1.cqg",1001)
 	loadMapFile("ngmaps/courtyard+2.cqg",1101)
-	--loadMapFile("ngmaps/waterways+1.cqg",1002)
-	--loadMapFile("ngmaps/waterways+2.cqg",1102)
+	loadMapFile("ngmaps/waterways+1.cqg",1002)
+	loadMapFile("ngmaps/waterways+2.cqg",1102)
 	
 	maxmap=1
 	ngmaxmap=1
