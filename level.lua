@@ -98,19 +98,19 @@ mapstats = {
 	},
 	{--streetsweep
 		nextmap=109,
-		music=5,
+		music=6,
 	},
 	[109]={--streetsweep 2
 		nextmap=209,
-		music=5,
+		music=6,
 	},
 	[209]={--streetsweep 3
 		nextmap=309,
-		music=5,
+		music=6,
 	},
 	[309]={--streetsweep 4
 		nextmap=0,
-		music=5,
+		music=6,
 	},
 	
 	--NEW GAME PLUS!!!
@@ -138,17 +138,33 @@ mapstats = {
 		nextmap=0,
 		music=2,
 	},
-	[1004]={--city boys
+	[1004]={--city boys+
 		nextmap=1104,
 		music=4,
 	},
-	[1104]={--city boys 2
+	[1104]={--city boys+ 2
 		nextmap=1204,
 		music=4,
 	},
-	[1204]={--city boys 3
+	[1204]={--city boys+ 3
 		nextmap=0,
 		music=4,
+	},
+	[1005]={--marshland+
+		nextmap=1105,
+		music=1,
+	},
+	[1105]={--marshland+ 2
+		nextmap=1205,
+		music=1,
+	},
+	[1205]={--marshland+ 3
+		nextmap=1305,
+		music=1,
+	},
+	[1305]={--marshland+ 4
+		nextmap=0,
+		music=1,
 	},
 }
 

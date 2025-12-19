@@ -50,6 +50,7 @@ music = {
 	battle3 = love.audio.newSource("music/battle3sync.wav","stream"),
 	battle4 = love.audio.newSource("music/battle4sync.wav","stream"),
 	battle5 = love.audio.newSource("music/battle5sync.wav","stream"),
+	battle6 = love.audio.newSource("music/battle6sync.wav","stream"),
 	
 	results = love.audio.newSource("music/results.wav","stream"),
 	helpme = love.audio.newSource("music/helpme.wav","stream"),

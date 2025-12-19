@@ -180,6 +180,10 @@ function love.load(args)
 	loadMapFile("ngmaps/city boys+1.cqg",1004)
 	loadMapFile("ngmaps/city boys+2.cqg",1104)
 	loadMapFile("ngmaps/city boys+3.cqg",1204)
+	loadMapFile("ngmaps/marshlands+1.cqg",1005)
+	loadMapFile("ngmaps/marshlands+2.cqg",1105)
+	loadMapFile("ngmaps/marshlands+3.cqg",1205)
+	loadMapFile("ngmaps/marshlands+4.cqg",1305)
 	
 	maxmap=1
 	ngmaxmap=1
