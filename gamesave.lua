@@ -24,6 +24,7 @@ function updateSave()
 		savestr = savestr..v
 		end
 	savestr = savestr .. string.char(ngmaxmap)
+	savestr = savestr .. string.char(achievementbyte)
 	local savef = love.filesystem.newFile("cqgsave.cqs")
 	love.filesystem.write("cqgsave.cqs",savestr)
 	end
@@ -51,10 +52,12 @@ function loadSave()
 		end
 	stats.screenendless = string.byte(savestr,string.byte(savestr,5))
 	
-	if string.len(savestr) <= string.byte(savestr,5) then
+	if string.len(savestr) <= string.byte(savestr,5)+1 then
 		ngmaxmap = 1
+		achievementbyte = 0
 		else
 		ngmaxmap = string.byte(savestr,string.byte(savestr,5)+1)
+		achievementbyte = string.byte(savestr,string.byte(savestr,5)+2)
 		end
 	
 	print("loaded save")
@@ -84,4 +87,39 @@ function intToBytes(num)
 		end
 	
 	return bytes
+	end
+
+function getBit(bbyte,index)
+	local bit = math.min(bit.band(bbyte,2^(index-1)),1)
+	return bit~=0
+	end
+function setBit(bbyte,index)
+	local bits = bit.bor(bbyte,2^(index-1))
+	return bits
+	end
+
+function getAchievements()
+	achievements = {
+		bloodlust = (stats.blood>1000), 				--spill over 1kL blood
+		betteroffdead = (stats.screenendless>=15), 		--get to screen 15 in endless
+		victory = getBit(achievementbyte,1), 			--beat map 8 showdown
+		mastery100 = (maxmap >= 9), 					--get an A+ on every level in the game, unlocking street-sweep and ng+
+		mastery200 = (ngmaxmap >= 9), 					--beat maps 1+ to 8+, reaching 200% completion and unlocking street-sweep+
+		fullmastery = getBit(achievementbyte,2), 		--beat street-sweep+
+		passinggrade = getBit(achievementbyte,3), 		--get a "PERFECT" bonus on any level
+		justlucky = getBit(achievementbyte,4), 			--get 3 crits in a row (1/27 chance for a given three shots)
+		professional = getBit(achievementbyte,5), 		--get a non-special piece to lv5
+		masterassassin = getBit(achievementbyte,6), 	--kill a special piece with a scout
+		survivorsremorse = getBit(achievementbyte,7), 	--finish a level which has more than one starting piece with one surviving piece
+		justunfortunate = getBit(achievementbyte,8), 	--fail a level on the 4th screen or further
+	}
+	print("ACHIEVEMENTS:")
+	local booltxt = {
+		[true] = "TRUE",
+		[false] = "FALSE"
+	}
+	local blankstr = "                    "
+	for k,v in pairs(achievements) do
+		print(k..":"..string.sub(blankstr,string.len(k),-1)..booltxt[v])
+		end
 	end

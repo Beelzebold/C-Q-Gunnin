@@ -188,12 +188,16 @@ function love.load(args)
 	maxmap=1
 	ngmaxmap=1
 	
+	achievementbyte = 0
+	
 	if love.filesystem.getInfo("cqgsave.cqs","file") then
 		loadSave()
 		end
 	if apluses[1]>0 and apluses[2]>0 and apluses[3]>0 and apluses[4]>0 and apluses[5]>0 and apluses[6]>0 and apluses[7]>0 and apluses[8]>0 then
 		maxmap=9
 		end
+	
+	getAchievements()
 	
 	local scale = love.graphics.getHeight()/224
 	xofs = (love.graphics.getWidth()-(300*scale))/2
@@ -251,7 +255,10 @@ function love.update(dt)
 				--win bonus
 				score[winningteam]=score[winningteam]+60
 				--perfect bonus
-				if pdeaths<1 then score[winningteam]=math.floor(score[winningteam]*1.3+10) end
+				if pdeaths<1 then
+					score[winningteam]=math.floor(score[winningteam]*1.3+10)
+					achievementbyte = setBit(achievementbyte,3)
+					end
 				
 				--add player stats
 				stats.blood = stats.blood + math.floor(spilledblood[1]/1000+0.5)
