@@ -110,7 +110,7 @@ function getAchievements()
 		justlucky = getBit(achievementbyte,4), 			--get 3 crits in a row (1/27 chance for a given three shots)
 		professional = getBit(achievementbyte,5), 		--get a non-special piece to lv5
 		masterassassin = getBit(achievementbyte,6), 	--kill a special piece with a scout
-		survivorsremorse = getBit(achievementbyte,7), 	--finish a level which has more than one starting piece with one surviving piece
+		streetsweeper = getBit(achievementbyte,7), 		--beat street-sweep
 		justunfortunate = getBit(achievementbyte,8), 	--fail a level on the 4th screen or further
 	}
 	print("ACHIEVEMENTS:")

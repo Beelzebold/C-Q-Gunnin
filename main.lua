@@ -270,8 +270,19 @@ function love.update(dt)
 					if winningteam==1 and grade>2 then
 						if not ngplus then
 							if levelnum%100==maxmap then maxmap=math.min(maxmap+1,maxmaxmap) end
+							--for beating showdown or street-sweep
+							if levelnum%100==8 then
+								achievementbyte = setBit(achievementbyte,1)
+								end
+							if levelnum%100==9 then
+								achievementbyte = setBit(achievementbyte,7)
+								end
 							else
 							if levelnum%100==ngmaxmap then ngmaxmap=math.min(ngmaxmap+1,maxmaxmap+1) end
+							--for beating street-sweep+
+							if levelnum%100==9 then
+								achievementbyte = setBit(achievementbyte,2)
+								end
 							end
 						end
 					
