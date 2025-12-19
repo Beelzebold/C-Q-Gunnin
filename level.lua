@@ -130,6 +130,26 @@ mapstats = {
 		nextmap=0,
 		music=3,
 	},
+	[1003]={--river blitz+
+		nextmap=1103,
+		music=2,
+	},
+	[1103]={--river blitz+ 2
+		nextmap=0,
+		music=2,
+	},
+	[1004]={--city boys
+		nextmap=1104,
+		music=4,
+	},
+	[1104]={--city boys 2
+		nextmap=1204,
+		music=4,
+	},
+	[1204]={--city boys 3
+		nextmap=0,
+		music=4,
+	},
 }
 
 mapdesc = {
@@ -223,6 +243,8 @@ function nextLevel(lev)
 	objs = {}
 	levelnum = lev
 	level = maps[lev]
+	
+	table.sort(mappieces[lev],function(a,b) return a[2]<b[2] end)
 	
 	local currentoldobj = 1
 	for i=1,#mappieces[lev] do

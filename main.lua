@@ -175,6 +175,11 @@ function love.load(args)
 	loadMapFile("ngmaps/courtyard+2.cqg",1101)
 	loadMapFile("ngmaps/waterways+1.cqg",1002)
 	loadMapFile("ngmaps/waterways+2.cqg",1102)
+	loadMapFile("ngmaps/river blitz+1.cqg",1003)
+	loadMapFile("ngmaps/river blitz+2.cqg",1103)
+	loadMapFile("ngmaps/city boys+1.cqg",1004)
+	loadMapFile("ngmaps/city boys+2.cqg",1104)
+	loadMapFile("ngmaps/city boys+3.cqg",1204)
 	
 	maxmap=1
 	ngmaxmap=1
